@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PPAP View Page</title>
+    <title>PPAP View Page - Improved</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
     <style>
@@ -11,6 +11,8 @@
             --sidebar-bg: #1a202c;
             --main-bg: #f7fafc;
             --primary-blue: #3b82f6;
+            --status-green: #22c55e;
+            --status-red: #ef4444;
             --border-color: #e2e8f0;
             --text-secondary: #718096;
         }
@@ -20,34 +22,71 @@
             color: #2d3748;
         }
 
-        .sidebar {
-            background-color: var(--sidebar-bg);
-        }
-
-        .main-content {
-            background-color: var(--main-bg);
-        }
+        .sidebar { background-color: var(--sidebar-bg); }
+        .main-content { background-color: var(--main-bg); }
         
+        /* --- MODIFIED: Tab Color Logic --- */
         .tab-button {
             padding: 0.75rem 1.25rem;
             color: var(--text-secondary);
             border-bottom: 2px solid transparent;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease-in-out;
+            font-weight: 500;
+            border-radius: 6px 6px 0 0; /* Rounded top corners */
+            margin-bottom: -1px; /* Overlap the main border for a seamless look */
+        }
+
+        /* Default hover for any inactive tab that does NOT have a status color */
+        .tab-button:not(.active):not([class*="status-"]):hover {
+            background-color: #eef2ff;
+            color: var(--primary-blue);
+        }
+
+        /* Default active state for regular tabs (non-status) */
+        .tab-button.active:not([class*="status-"]) {
+            color: var(--primary-blue);
+            border-bottom-color: var(--primary-blue);
+            background-color: var(--main-bg); /* Match content background to look connected */
+        }
+
+        /* --- NEW: Always-on Color Logic for the Linked PPAPs Tab --- */
+
+        /* Always apply BG and Font color if a status class is present */
+        #linked-ppaps-tab-button.status-red {
+            background-color: #fee2e2;
+            color: #991b1b;
+            font-weight: 500;
+        }
+        #linked-ppaps-tab-button.status-green {
+            background-color: #dcfce7;
+            color: #14532d;
+            font-weight: 500;
+        }
+        #linked-ppaps-tab-button.status-blue {
+            background-color: #dbeafe;
+            color: #1e40af;
             font-weight: 500;
         }
 
-        .tab-button.active, .tab-button:hover {
-            color: var(--primary-blue);
-            border-bottom-color: var(--primary-blue);
+        /* When a status tab is ACTIVE, just add the bottom border */
+        #linked-ppaps-tab-button.status-red.active {
+            border-bottom-color: #ef4444;
+        }
+        #linked-ppaps-tab-button.status-green.active {
+            border-bottom-color: #22c55e;
+        }
+        #linked-ppaps-tab-button.status-blue.active {
+            border-bottom-color: #3b82f6;
         }
 
-        .tab-content {
-            display: none;
+        /* Add a subtle hover effect for status tabs by slightly darkening the BG */
+        #linked-ppaps-tab-button[class*="status-"]:hover {
+            filter: brightness(95%);
         }
+        /* --- End of MODIFIED Styles --- */
 
-        .tab-content.active {
-            display: block;
-        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
         .btn {
             display: inline-flex;
@@ -60,104 +99,78 @@
             border: 1px solid var(--border-color);
         }
 
-        .btn-primary {
-            background-color: var(--primary-blue);
-            color: white;
-            border-color: var(--primary-blue);
-        }
-        .btn-primary:hover {
-            background-color: #2563eb;
-        }
-
-        .btn-secondary {
-            background-color: white;
-            color: #4a5568;
-        }
-        .btn-secondary:hover {
-            background-color: #f7fafc;
-        }
+        .btn-primary { background-color: var(--primary-blue); color: white; border-color: var(--primary-blue); }
+        .btn-primary:hover { background-color: #2563eb; }
+        .btn-secondary { background-color: white; color: #4a5568; }
+        .btn-secondary:hover { background-color: #f7fafc; }
         
-        .header-btn {
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-        .header-btn i {
-            margin-right: 0.5rem;
-        }
+        .header-btn { color: var(--text-secondary); font-weight: 500; }
+        .header-btn i { margin-right: 0.5rem; }
 
         .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background-color: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             z-index: 50;
-            opacity: 0;
-            visibility: hidden;
+            opacity: 0; visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
-
-        .modal-overlay.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-
+        .modal-overlay.visible { opacity: 1; visibility: visible; }
         .modal-content {
-            background-color: white;
-            border-radius: 0.5rem; /* 8px */
+            background-color: white; border-radius: 0.5rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            width: 90%;
-            max-width: 64rem; /* 1024px */
-            max-height: 90vh;
-            display: flex;
-            flex-direction: column;
+            width: 90%; max-width: 64rem; max-height: 90vh;
+            display: flex; flex-direction: column;
         }
-        .tooltip-container {
-            position: relative;
-            display: inline-block;
-        }
+
+        /* Tooltip Implementation */
+        .tooltip-container { position: relative; display: inline-block; }
         .tooltip-text {
-        .multi-select-dropdown {
+            visibility: hidden;
+            width: 100px;
+            background-color: #334155;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -50px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.75rem;
+        }
+        .tooltip-text::after {
+            content: "";
             position: absolute;
             top: 100%;
-            left: 0;
-            right: 0;
-            background-color: white;
-            border: 1px solid var(--border-color);
-            border-top: none;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #334155 transparent transparent transparent;
+        }
+        .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
+
+        .multi-select-dropdown {
+            position: absolute; top: 100%; left: 0; right: 0;
+            background-color: white; border: 1px solid var(--border-color); border-top: none;
             border-radius: 0 0 0.375rem 0.375rem;
-            z-index: 60;
-            max-height: 200px;
-            overflow-y: auto;
+            z-index: 60; max-height: 200px; overflow-y: auto;
         }
-        .multi-select-dropdown label {
-            display: block;
-            padding: 0.5rem;
-            cursor: pointer;
-        }
-        .multi-select-dropdown label:hover {
-            background-color: #f0f4f8;
-        }
-        .multi-select-placeholder {
-            color: #a0aec0;
-        }
-        .hidden {
-            display: none !important;
-        }
-
-
+        .multi-select-dropdown label { display: block; padding: 0.5rem; cursor: pointer; }
+        .multi-select-dropdown label:hover { background-color: #f0f4f8; }
+        .multi-select-placeholder { color: #a0aec0; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body class="bg-gray-200">
     <div class="flex h-screen">
-        <!-- Sidebar -->
         <div class="sidebar text-white w-16 flex flex-col items-center py-4 space-y-4">
-             <div class="text-2xl font-bold">A</div>
-             <div class="flex flex-col items-center justify-between flex-grow w-full">
+            <div class="text-2xl font-bold">A</div>
+            <div class="flex flex-col items-center justify-between flex-grow w-full">
                 <div class="space-y-4">
                     <button class="w-12 h-12 flex items-center justify-center bg-gray-700 rounded-lg"><i class="fas fa-home"></i></button>
                     <button class="w-12 h-12 flex items-center justify-center hover:bg-gray-700 rounded-lg"><i class="fas fa-chart-bar"></i></button>
@@ -169,12 +182,10 @@
                     <button class="w-12 h-12 flex items-center justify-center hover:bg-gray-700 rounded-lg"><i class="fas fa-question-circle"></i></button>
                     <button class="w-12 h-12 flex items-center justify-center hover:bg-gray-700 rounded-lg"><i class="fas fa-user-circle"></i></button>
                 </div>
-             </div>
+            </div>
         </div>
 
-        <!-- Main Content -->
         <div class="flex-1 flex flex-col">
-            <!-- Header -->
             <header class="bg-white shadow-sm flex items-center justify-between p-4">
                 <div class="flex items-center">
                     <button class="text-gray-600 mr-4"><i class="fas fa-arrow-left"></i></button>
@@ -184,44 +195,37 @@
                     <span class="text-sm font-medium text-blue-500"><i class="fas fa-check-circle text-blue-500"></i> Phased PPAP Status</span>
                     <span class="text-sm font-medium text-gray-600"><i class="fas fa-history text-gray-400"></i> Status History</span>
                     <div class="flex items-center space-x-4">
-                        <button class="header-btn"><i class="fas fa-download"></i>Download</button>
-                        <!-- New Link PPAP button - visibility controlled by JS -->
-                        <button id="link-ppap-btn" class="header-btn"><i class="fas fa-link"></i>Link PPAP</button>
-                        <!-- New View Linked Hardware PPAP button -->
-                        <button id="view-linked-hardware-ppap-btn" class="header-btn hidden"><i class="fas fa-sitemap"></i>View Linked Hardware PPAP</button>
-                        <button class="header-btn"><i class="fas fa-file-export"></i>Export</button>
+                        <button class="header-btn" title="Download PPAP Package"><i class="fas fa-download"></i>Download</button>
+                        <button id="link-ppap-btn" class="header-btn" title="Link software PPAPs to this hardware PPAP"><i class="fas fa-link"></i>Link PPAP</button>
+                        <button id="view-linked-hardware-ppap-btn" class="header-btn hidden" title="Go to parent hardware PPAP"><i class="fas fa-sitemap"></i>View Linked Hardware PPAP</button>
+                        <button class="header-btn" title="Export data to a file"><i class="fas fa-file-export"></i>Export</button>
                     </div>
-                     <div class="flex items-center">
+                    <div class="flex items-center">
                         <i class="fas fa-user-circle text-2xl text-gray-400 mr-2"></i>
-                        <div>
-                            <span class="font-semibold">Admin User(admin)</span>
-                        </div>
-                     </div>
+                        <div> <span class="font-semibold">Admin User(admin)</span> </div>
+                    </div>
                 </div>
             </header>
 
-            <!-- Page Content -->
             <main class="flex-1 p-6 overflow-y-auto main-content">
                 <div class="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4 mb-6 rounded-md" role="alert">
-                  <p class="font-bold">Package Interim Approved @ 01 Sep 2025</p>
+                    <p class="font-bold">Package Interim Approved @ 01 Sep 2025</p>
                 </div>
 
                 <div class="bg-white p-6 rounded-lg shadow-sm">
-                    <!-- Details Section -->
                     <div class="flex justify-between items-center mb-4">
-                         <h2 class="text-lg font-semibold">Details</h2>
-                         <button class="text-sm text-blue-600 font-semibold"><i class="fas fa-plus"></i> More Details</button>
+                        <h2 class="text-lg font-semibold">Details</h2>
+                        <button class="text-sm text-blue-600 font-semibold"><i class="fas fa-plus"></i> More Details</button>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm mb-6">
-                        <div><strong class="font-semibold text-gray-500 block">PPAP Id:</strong><span id="ppap-id-display">PPAP-SPLR-2025-34751</span></div>
-                        <div><strong class="font-semibold text-gray-500 block">Name:</strong><span id="ppap-name-display">Wiper Blade Assembly, 28in</span></div>
-                        <div><strong class="font-semibold text-gray-500 block">Part Number:</strong><span id="ppap-part-number-display">6500299</span></div>
+                        <div><strong class="font-semibold text-gray-500 block">PPAP Id:</strong><span id="ppap-id-display"></span></div>
+                        <div><strong class="font-semibold text-gray-500 block">Name:</strong><span id="ppap-name-display"></span></div>
+                        <div><strong class="font-semibold text-gray-500 block">Part Number:</strong><span id="ppap-part-number-display"></span></div>
                         <div><strong class="font-semibold text-gray-500 block">Order Number:</strong><span></span></div>
-                        <div><strong class="font-semibold text-gray-500 block">PPAP Status:</strong><span id="ppap-status-display">Interim Approved</span></div>
+                        <div><strong class="font-semibold text-gray-500 block">PPAP Status:</strong><span id="ppap-status-display"></span></div>
                         <div><strong class="font-semibold text-gray-500 block">UIO:</strong><span></span></div>
                     </div>
 
-                    <!-- Tabs Navigation -->
                     <div class="border-b border-gray-200">
                         <nav class="-mb-px flex space-x-6" aria-label="Tabs">
                             <button class="tab-button" data-tab="elements">Elements</button>
@@ -229,19 +233,16 @@
                             <button class="tab-button" data-tab="e-psw">e-PSW</button>
                             <button class="tab-button" data-tab="upload-document">Upload Document</button>
                             <button class="tab-button active" data-tab="review-element">Review Element</button>
-                            <!-- New Linked PPAPs Tab -->
                             <button id="linked-ppaps-tab-button" class="tab-button hidden" data-tab="linked-ppaps">Linked PPAPs</button>
                         </nav>
                     </div>
                     
-                    <!-- Tab Content -->
                     <div id="elements" class="tab-content mt-6">Content for Elements</div>
                     <div id="conversation" class="tab-content mt-6">Content for Conversation</div>
                     <div id="e-psw" class="tab-content mt-6">Content for e-PSW</div>
                     <div id="upload-document" class="tab-content mt-6">Content for Upload Document</div>
                     
                     <div id="review-element" class="tab-content active mt-6">
-                        <!-- Content from screenshot -->
                         <div class="space-y-4">
                             <div class="flex items-center space-x-4 text-sm">
                                 <span class="font-semibold"><i class="fas fa-list-alt"></i> Element Level Description</span>
@@ -280,7 +281,6 @@
                                             <td class="p-3">29 Aug 2025</td>
                                             <td class="p-3">29 Aug 2025</td>
                                         </tr>
-                                        <!-- More rows as in the screenshot -->
                                     </tbody>
                                 </table>
                             </div>
@@ -289,11 +289,6 @@
 
                     <div id="linked-ppaps" class="tab-content mt-6">
                         <div class="flex justify-between items-center mb-4">
-                             <!-- Back to Main PPAP Link -->
-                            <div class="text-sm">
-                                <span id="back-to-main-label" class="text-gray-600">Viewing links for Main PPAP:</span>
-                                <a href="#" id="back-to-main-link" class="font-semibold text-blue-600 hover:underline">PPAP-SPLR-2025-34751</a>
-                            </div>
                             <button class="btn btn-secondary text-sm"><i class="fas fa-file-excel mr-2"></i>Export to Excel</button>
                         </div>
                         <div class="overflow-x-auto">
@@ -310,8 +305,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="linked-ppaps-table-body" class="divide-y divide-gray-200">
-                                    <!-- Linked PPAPs will be dynamically inserted here -->
-                                </tbody>
+                                    </tbody>
                             </table>
                         </div>
                     </div>
@@ -320,59 +314,53 @@
         </div>
     </div>
     
-    <!-- Link PPAP Modal -->
     <div id="link-ppap-modal" class="modal-overlay">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] flex flex-col">
+        <div class="modal-content">
             <div class="flex justify-between items-center p-4 border-b">
-                <h3 class="text-lg font-semibold">Link PPAPs</h3>
+                <h3 class="text-lg font-semibold">Link Software PPAPs</h3>
                 <button id="close-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
             </div>
             <div class="p-6 overflow-y-auto flex-grow">
-                <!-- Search Criteria Section -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 border rounded-lg bg-gray-50">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Part Number / Name</label>
-                        <input type="text" id="search-part" placeholder="Enter Part Number or Name" class="w-full border rounded px-2 py-1.5 text-sm">
+                        <input type="text" id="search-part" placeholder="e.g., SW-APP-3.1" class="w-full border rounded px-2 py-1.5 text-sm">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Supplier Code / Name</label>
-                        <input type="text" id="search-supplier" placeholder="Enter Supplier" class="w-full border rounded px-2 py-1.5 text-sm">
+                        <input type="text" id="search-supplier" placeholder="e.g., Firmware Solutions" class="w-full border rounded px-2 py-1.5 text-sm">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                         <div class="multi-select-container" id="status-multi-select">
-                            <div class="multi-select-input">
+                        <div class="relative multi-select-container" id="status-multi-select">
+                            <div class="multi-select-input border rounded px-2 py-1.5 text-sm bg-white cursor-pointer flex justify-between items-center">
                                 <span class="multi-select-placeholder">Select Status...</span>
                                 <i class="fas fa-chevron-down text-xs"></i>
                             </div>
-                            <div class="multi-select-dropdown hidden">
-                                <!-- Options will be generated by JS -->
-                            </div>
+                            <div class="multi-select-dropdown hidden"></div>
                         </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Program</label>
-                        <div class="multi-select-container" id="program-multi-select">
-                            <div class="multi-select-input">
+                        <div class="relative multi-select-container" id="program-multi-select">
+                           <div class="multi-select-input border rounded px-2 py-1.5 text-sm bg-white cursor-pointer flex justify-between items-center">
                                 <span class="multi-select-placeholder">Select Program...</span>
                                 <i class="fas fa-chevron-down text-xs"></i>
                             </div>
-                            <div class="multi-select-dropdown hidden">
-                                <!-- Options will be generated by JS -->
-                            </div>
+                            <div class="multi-select-dropdown hidden"></div>
                         </div>
                     </div>
                     <div class="md:col-span-4 flex justify-end">
-                         <button id="search-ppaps-btn" class="btn btn-primary text-sm"><i class="fas fa-search mr-2"></i>Search PPAPs</button>
+                        <button id="search-ppaps-btn" class="btn btn-primary text-sm"><i class="fas fa-search mr-2"></i>Search PPAPs</button>
                     </div>
                 </div>
 
-                <p class="text-sm text-gray-600 mb-2">Select PPAPs to link with PPAP-SPLR-2025-34751. PPAPs already part of another link group will not be shown.</p>
+                <p id="modal-helper-text" class="text-sm text-gray-600 mb-2"></p>
                 <div class="overflow-x-auto border rounded-lg">
                     <table class="min-w-full bg-white text-sm">
                         <thead class="bg-gray-100">
                            <tr>
-                                <th class="p-3 w-10 text-center"><input type="checkbox" id="select-all-ppaps"></th>
+                                <th class="p-3 w-10 text-center"><input type="checkbox" id="select-all-ppaps" title="Select all items in the current view"></th>
                                 <th class="p-3 font-semibold text-gray-600 text-left">PPAP ID</th>
                                 <th class="p-3 font-semibold text-gray-600 text-left">Part Number</th>
                                 <th class="p-3 font-semibold text-gray-600 text-left">Part Name</th>
@@ -395,370 +383,321 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const tabs = document.querySelectorAll('.tab-button');
-            const tabContents = document.querySelectorAll('.tab-content');
-            const linkPpapBtn = document.getElementById('link-ppap-btn');
-            const modal = document.getElementById('link-ppap-modal');
-            const closeModalBtn = document.getElementById('close-modal-btn');
-            const cancelLinkBtn = document.getElementById('cancel-link-btn');
-            const confirmLinkBtn = document.getElementById('confirm-link-btn');
-            const selectAllCheckbox = document.getElementById('select-all-ppaps');
-            const ppapCheckboxes = document.querySelectorAll('.ppap-checkbox');
-            const linkedPpapsTabBtn = document.getElementById('linked-ppaps-tab-button');
-            const linkedPpapsTableBody = document.getElementById('linked-ppaps-table-body');
-            const linkablePpapsTable = document.getElementById('linkable-ppaps-table');
-            const searchPpapBtn = document.getElementById('search-ppaps-btn');
-            const backToMainLink = document.getElementById('back-to-main-link');
-            const backToMainLabel = document.getElementById('back-to-main-label');
-            const viewLinkedHardwareBtn = document.getElementById('view-linked-hardware-ppap-btn');
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- DOM Elements ---
+        const dom = {
+            tabs: document.querySelectorAll('.tab-button'),
+            tabContents: document.querySelectorAll('.tab-content'),
+            linkPpapBtn: document.getElementById('link-ppap-btn'),
+            viewLinkedHardwareBtn: document.getElementById('view-linked-hardware-ppap-btn'),
+            modal: document.getElementById('link-ppap-modal'),
+            closeModalBtn: document.getElementById('close-modal-btn'),
+            cancelLinkBtn: document.getElementById('cancel-link-btn'),
+            confirmLinkBtn: document.getElementById('confirm-link-btn'),
+            selectAllCheckbox: document.getElementById('select-all-ppaps'),
+            linkedPpapsTabBtn: document.getElementById('linked-ppaps-tab-button'),
+            linkedPpapsTableBody: document.getElementById('linked-ppaps-table-body'),
+            linkablePpapsTable: document.getElementById('linkable-ppaps-table'),
+            searchPpapBtn: document.getElementById('search-ppaps-btn'),
+            modalHelperText: document.getElementById('modal-helper-text'),
+            ppapIdDisplay: document.getElementById('ppap-id-display'),
+            ppapNameDisplay: document.getElementById('ppap-name-display'),
+            ppapPartNumberDisplay: document.getElementById('ppap-part-number-display'),
+            ppapStatusDisplay: document.getElementById('ppap-status-display'),
+            searchInputPart: document.getElementById('search-part'),
+            searchInputSupplier: document.getElementById('search-supplier'),
+        };
 
-            const mainPpap = {
-                 id: 'PPAP-HW-2025-001',
-                 name: 'Main Control Unit',
-                 partNumber: 'HW-MCU-01',
-                 status: 'Approved',
-                 type: 'Hardware'
-            };
-            let currentPpap = {...mainPpap};
-            let linkedPpaps = [];
-            
-            const allLinkablePpaps = [
-                 {id: 'PPAP-SW-2025-1050', partNumber: 'SW-BOOT-1.2', name: 'Bootloader Software', supplierName: 'Firmware Solutions', status: 'Approved', programName: 'Project Titan', type: 'Software', linkedHardwarePpapId: 'PPAP-HW-2025-001'},
-                 {id: 'PPAP-SW-2025-1051', partNumber: 'SW-APP-3.1', name: 'Application Logic', supplierName: 'Firmware Solutions', status: 'In-Progress', programName: 'Project Titan', type: 'Software', linkedHardwarePpapId: 'PPAP-HW-2025-001'},
-                 {id: 'PPAP-SW-2025-4522', partNumber: 'SW-UI-2.5', name: 'Display Driver', supplierName: 'UI Systems', status: 'Review Pending', programName: 'Project Titan', type: 'Software', linkedHardwarePpapId: 'PPAP-HW-2025-001'},
-                 {id: 'PPAP-SW-2025-4523', partNumber: 'SW-DIAG-1.8', name: 'Diagnostics Module', supplierName: 'Firmware Solutions', status: 'Approved', programName: 'Project Titan', type: 'Software', linkedHardwarePpapId: 'PPAP-HW-2025-001'},
-                 {id: 'PPAP-SW-2024-9876', partNumber: 'SW-SEC-4.0', name: 'Security Kernel', supplierName: 'SecureCode Inc.', status: 'Rejected', programName: 'Project Titan', type: 'Software', linkedHardwarePpapId: 'PPAP-HW-2025-001'}
-            ];
+        // --- Data Store ---
+        const db = {
+            ppaps: [
+                { id: 'PPAP-SPLR-2025-34751', partNumber: 'HW-MCU-01', name: 'Main Control Unit', supplierName: 'Auto Systems', status: 'Interim Approved', programName: 'Project Titan', type: 'Hardware' },
+                { id: 'PPAP-SW-2025-1050', partNumber: 'SW-BOOT-1.2', name: 'Bootloader Software', supplierName: 'Firmware Solutions', status: 'Approved', programName: 'Project Titan', type: 'Software' },
+                { id: 'PPAP-SW-2025-1051', partNumber: 'SW-APP-3.1', name: 'Application Logic', supplierName: 'Firmware Solutions', status: 'In-Progress', programName: 'Project Titan', type: 'Software' },
+                { id: 'PPAP-SW-2025-4522', partNumber: 'SW-UI-2.5', name: 'Display Driver', supplierName: 'UI Systems', status: 'Review Pending', programName: 'Project Titan', type: 'Software' },
+                { id: 'PPAP-SW-2025-4523', partNumber: 'SW-DIAG-1.8', name: 'Diagnostics Module', supplierName: 'Firmware Solutions', status: 'Approved', programName: 'Project Titan', type: 'Software' },
+                { id: 'PPAP-SW-2024-9876', partNumber: 'SW-SEC-4.0', name: 'Security Kernel', supplierName: 'SecureCode Inc.', status: 'Rejected', programName: 'Project Titan', type: 'Software' },
+                { id: 'PPAP-SW-2025-7701', partNumber: 'SW-CAN-5.2', name: 'CAN Bus Driver', supplierName: 'AutoComms', status: 'In-Progress', programName: 'Project Apollo', type: 'Software' },
+                { id: 'PPAP-SW-2025-7702', partNumber: 'SW-ETH-2.0', name: 'Ethernet Stack', supplierName: 'AutoComms', status: 'Requested', programName: 'Project Apollo', type: 'Software' },
+                { id: 'PPAP-SW-2025-8345', partNumber: 'SW-OTA-1.5', name: 'Over-the-Air Updater', supplierName: 'UI Systems', status: 'Approved', programName: 'Project Apollo', type: 'Software' },
+            ],
+            links: [] // e.g., { hardwareId: '...', softwareId: '...' }
+        };
 
-            // --- Initial Setup ---
-            displayPpapDetails(mainPpap);
+        // --- State ---
+        let state = {
+            currentPpapId: 'PPAP-SPLR-2025-34751',
+        };
 
-            // Tab navigation
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    tabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    
-                    tabContents.forEach(content => content.classList.remove('active'));
-                    document.getElementById(tab.dataset.tab).classList.add('active');
-                });
-            });
-            
-            function showModal() {
-                modal.classList.add('visible');
+        // --- Functions ---
+        const getPpapById = (id) => db.ppaps.find(p => p.id === id);
+        const getLinkedSoftwareForHardware = (hardwareId) => db.links.filter(link => link.hardwareId === hardwareId).map(link => getPpapById(link.softwareId));
+        const getLinkedHardwareForSoftware = (softwareId) => {
+            const link = db.links.find(link => link.softwareId === softwareId);
+            return link ? getPpapById(link.hardwareId) : null;
+        };
+
+        function render(ppapId) {
+            state.currentPpapId = ppapId;
+            const ppap = getPpapById(ppapId);
+            if (!ppap) return;
+
+            dom.ppapIdDisplay.textContent = ppap.id;
+            dom.ppapNameDisplay.textContent = ppap.name;
+            dom.ppapPartNumberDisplay.textContent = ppap.partNumber;
+            dom.ppapStatusDisplay.textContent = ppap.status;
+
+            updateHeaderButtons(ppap);
+            renderLinkedPpapsTab(ppap);
+        }
+
+        function updateHeaderButtons(ppap) {
+            if (ppap.type === 'Hardware') {
+                dom.linkPpapBtn.classList.remove('hidden');
+                dom.viewLinkedHardwareBtn.classList.add('hidden');
+            } else {
+                dom.linkPpapBtn.classList.add('hidden');
+                const hasLink = getLinkedHardwareForSoftware(ppap.id);
+                dom.viewLinkedHardwareBtn.classList.toggle('hidden', !hasLink);
             }
-
-            function hideModal() {
-                modal.classList.remove('visible');
-            }
-
-            linkPpapBtn.addEventListener('click', showModal);
-            closeModalBtn.addEventListener('click', hideModal);
-            cancelLinkBtn.addEventListener('click', hideModal);
-            window.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    hideModal();
+        }
+        
+        function renderLinkedPpapsTab(hardwarePpap) {
+            if (hardwarePpap.type !== 'Hardware') {
+                dom.linkedPpapsTabBtn.classList.add('hidden');
+                if(dom.linkedPpapsTabBtn.classList.contains('active')) {
+                    document.querySelector('[data-tab="review-element"]').click();
                 }
-            });
-
-            // --- Multi-select Logic ---
-            function setupMultiSelect(containerId, options) {
-                const container = document.getElementById(containerId);
-                const input = container.querySelector('.multi-select-input');
-                const placeholder = container.querySelector('.multi-select-placeholder');
-                const dropdown = container.querySelector('.multi-select-dropdown');
-                let selectedValues = [];
-
-                options.forEach(optionValue => {
-                    const optionDiv = document.createElement('label');
-                    optionDiv.innerHTML = `<input type="checkbox" class="mr-2" value="${optionValue}"> ${optionValue}`;
-                    dropdown.appendChild(optionDiv);
-                });
-
-                input.addEventListener('click', () => {
-                    dropdown.classList.toggle('hidden');
-                });
-                
-                dropdown.addEventListener('change', (e) => {
-                    if(e.target.type === 'checkbox') {
-                        if (e.target.checked) {
-                            selectedValues.push(e.target.value);
-                        } else {
-                            selectedValues = selectedValues.filter(v => v !== e.target.value);
-                        }
-                        placeholder.textContent = selectedValues.length > 0 ? selectedValues.join(', ') : 'Select...';
-                        if (selectedValues.length > 2) {
-                            placeholder.textContent = `${selectedValues.length} items selected`;
-                        } else if (selectedValues.length > 0) {
-                            placeholder.textContent = selectedValues.join(', ');
-                        } else {
-                            placeholder.textContent = 'Select Status...'; // Or Program
-                        }
-                    }
-                });
-
-                document.addEventListener('click', (e) => {
-                    if (!container.contains(e.target)) {
-                        dropdown.classList.add('hidden');
-                    }
-                });
-
-                return () => selectedValues;
+                return;
             }
 
-            const getSelectedStatuses = setupMultiSelect('status-multi-select', [...new Set(allLinkablePpaps.map(p => p.status))]);
-            const getSelectedPrograms = setupMultiSelect('program-multi-select', [...new Set(allLinkablePpaps.map(p => p.programName))]);
-            
-            // --- Search Logic ---
-            searchPpapBtn.addEventListener('click', () => {
-                const partFilter = document.getElementById('search-part').value.toLowerCase();
-                const supplierFilter = document.getElementById('search-supplier').value.toLowerCase();
-                const statusFilter = getSelectedStatuses();
-                const programFilter = getSelectedPrograms();
-
-                const results = allLinkablePpaps.filter(ppap => {
-                    const partMatch = partFilter === '' || ppap.partNumber.toLowerCase().includes(partFilter) || ppap.name.toLowerCase().includes(partFilter);
-                    const supplierMatch = supplierFilter === '' || ppap.supplierName.toLowerCase().includes(supplierFilter);
-                    const statusMatch = statusFilter.length === 0 || statusFilter.includes(ppap.status);
-                    const programMatch = programFilter.length === 0 || programFilter.includes(ppap.programName);
-                    
-                    // Only show software PPAPs in the linkable list
-                    const typeMatch = ppap.type === 'Software';
-
-                    return partMatch && supplierMatch && statusMatch && programMatch && typeMatch;
-                });
-
-                renderLinkablePpaps(results);
-            });
-
-            function renderLinkablePpaps(ppaps) {
-                linkablePpapsTable.innerHTML = '';
-                if (ppaps.length === 0) {
-                    linkablePpapsTable.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-gray-500">No matching PPAPs found.</td></tr>`;
-                    return;
+            const linkedSoftware = getLinkedSoftwareForHardware(hardwarePpap.id);
+            if (linkedSoftware.length > 0) {
+                dom.linkedPpapsTabBtn.classList.remove('hidden');
+                dom.linkedPpapsTabBtn.textContent = `Linked PPAPs (${linkedSoftware.length})`;
+                renderLinkedPpapsTable(linkedSoftware);
+                updateTabColor(linkedSoftware);
+            } else {
+                dom.linkedPpapsTabBtn.classList.add('hidden');
+                if(dom.linkedPpapsTabBtn.classList.contains('active')) {
+                    document.querySelector('[data-tab="review-element"]').click();
                 }
-                ppaps.forEach(ppap => {
-                    const row = document.createElement('tr');
-                    row.dataset.id = ppap.id;
-                    row.innerHTML = `
-                        <td class="p-3 text-center"><input type="checkbox" class="ppap-checkbox"></td>
-                        <td class="p-3">${ppap.id}</td>
-                        <td class="p-3">${ppap.partNumber}</td>
-                        <td class="p-3">${ppap.name}</td>
-                        <td class="p-3">${ppap.supplierName}</td>
-                        <td class="p-3" data-status="${ppap.status}">${ppap.status}</td>
-                        <td class="p-3">${ppap.programName}</td>
-                    `;
-                    linkablePpapsTable.appendChild(row);
-                });
             }
+        }
 
-
-            // Select all checkbox logic
-            selectAllCheckbox.addEventListener('change', (e) => {
-                linkablePpapsTable.querySelectorAll('.ppap-checkbox').forEach(checkbox => {
-                    checkbox.checked = e.target.checked;
-                });
-            });
-
-            // Confirm linking logic
-            confirmLinkBtn.addEventListener('click', () => {
-                const selectedRows = Array.from(linkablePpapsTable.querySelectorAll('tr')).filter(row => row.querySelector('.ppap-checkbox')?.checked);
-                
-                selectedRows.forEach(row => {
-                    const id = row.dataset.id;
-                    if (!linkedPpaps.find(p => p.id === id)) {
-                         const sourceData = allLinkablePpaps.find(p => p.id === id);
-                        if(sourceData) {
-                             linkedPpaps.push({...sourceData});
-                        }
-                    }
-                });
-
-                if (linkedPpaps.length > 0) {
-                    renderLinkedPpaps();
-                    updateLinkedPpapsTabVisibility();
-                    updateTabColor();
-                    hideModal();
-                    
-                    // Switch to the linked PPAPs tab
-                    document.querySelector('.tab-button.active').classList.remove('active');
-                    document.querySelector('.tab-content.active').classList.remove('active');
-                    linkedPpapsTabBtn.classList.add('active');
-                    document.getElementById('linked-ppaps').classList.add('active');
-                }
-            });
-
-            function renderLinkedPpaps() {
-                linkedPpapsTableBody.innerHTML = '';
-                linkedPpaps.forEach((ppap, index) => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="p-3">${ppap.id}</td>
-                        <td class="p-3">${ppap.partNumber}</td>
-                        <td class="p-3">${ppap.partName}</td>
-                        <td class="p-3">
-                            <select class="status-selector border rounded px-2 py-1 text-xs" data-id="${ppap.id}">
-                                <option value="Requested" ${ppap.status === 'Requested' ? 'selected' : ''}>Requested</option>
-                                <option value="In-Progress" ${ppap.status === 'In-Progress' ? 'selected' : ''}>In-Progress</option>
-                                <option value="Review Pending" ${ppap.status === 'Review Pending' ? 'selected' : ''}>Review Pending</option>
-                                <option value="Approval Pending" ${ppap.status === 'Approval Pending' ? 'selected' : ''}>Approval Pending</option>
-                                <option value="Interim Approved" ${ppap.status === 'Interim Approved' ? 'selected' : ''}>Interim Approved</option>
-                                <option value="Cancelled" ${ppap.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
-                                <option value="Approved" ${ppap.status === 'Approved' ? 'selected' : ''}>Approved</option>
-                                <option value="Closed" ${ppap.status === 'Closed' ? 'selected' : ''}>Closed</option>
-                                <option value="Rejected" ${ppap.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
-                            </select>
-                        </td>
-                        <td class="p-3">${ppap.supplierName}</td>
-                        <td class="p-3">${ppap.programName}</td>
-                        <td class="p-3">
-                            <div class="flex items-center space-x-4">
-                                <div class="tooltip-container">
-                                    <button class="view-ppap-btn text-blue-600 hover:text-blue-800 transition-colors" data-id="${ppap.id}"><i class="fas fa-eye fa-fw"></i></button>
-                                    <span class="tooltip-text">View PPAP</span>
-                                </div>
-                                <div class="tooltip-container">
-                                    <button class="unlink-btn text-red-600 hover:text-red-800 transition-colors" data-id="${ppap.id}"><i class="fas fa-unlink fa-fw"></i></button>
-                                    <span class="tooltip-text">Unlink PPAP</span>
-                                </div>
+        function renderLinkedPpapsTable(linkedPpaps) {
+            dom.linkedPpapsTableBody.innerHTML = '';
+            linkedPpaps.forEach(ppap => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="p-3"><a href="#" class="view-ppap-link text-blue-600 hover:underline" data-id="${ppap.id}">${ppap.id}</a></td>
+                    <td class="p-3">${ppap.partNumber}</td>
+                    <td class="p-3">${ppap.name}</td>
+                    <td class="p-3">${ppap.status}</td>
+                    <td class="p-3">${ppap.supplierName}</td>
+                    <td class="p-3">${ppap.programName}</td>
+                    <td class="p-3">
+                        <div class="flex items-center space-x-4">
+                            <div class="tooltip-container">
+                                <button class="view-ppap-btn text-blue-600 hover:text-blue-800" data-id="${ppap.id}"><i class="fas fa-eye fa-fw"></i></button>
+                                <span class="tooltip-text">View Details</span>
                             </div>
-                        </td>
-                    `;
-                    linkedPpapsTableBody.appendChild(row);
-                });
-                
-                // Add event listeners for new elements
-                document.querySelectorAll('.status-selector').forEach(selector => {
-                    selector.addEventListener('change', handleStatusChange);
-                });
-                document.querySelectorAll('.unlink-btn').forEach(button => {
-                    button.addEventListener('click', handleUnlink);
-                });
-                document.querySelectorAll('.view-ppap-btn').forEach(button => {
-                    button.addEventListener('click', handleViewPpap);
-                });
+                            <div class="tooltip-container">
+                                <button class="unlink-btn text-red-600 hover:text-red-800" data-id="${ppap.id}"><i class="fas fa-unlink fa-fw"></i></button>
+                                <span class="tooltip-text">Unlink PPAP</span>
+                            </div>
+                        </div>
+                    </td>
+                `;
+                dom.linkedPpapsTableBody.appendChild(row);
+            });
+        }
+        
+        function updateTabColor(linkedPpaps) {
+            dom.linkedPpapsTabBtn.classList.remove('status-red', 'status-green', 'status-blue');
+            if(linkedPpaps.length === 0) return;
+            const statuses = linkedPpaps.map(p => p.status);
+            if (statuses.includes('Rejected')) {
+                dom.linkedPpapsTabBtn.classList.add('status-red');
+            } else if (linkedPpaps.every(p => p.status === 'Approved' || p.status === 'Closed')) {
+                dom.linkedPpapsTabBtn.classList.add('status-green');
+            } else {
+                dom.linkedPpapsTabBtn.classList.add('status-blue');
             }
+        }
+
+        // --- Event Handlers ---
+        dom.tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                dom.tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                dom.tabContents.forEach(content => content.classList.remove('active'));
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Modal Logic
+        const showModal = () => {
+            const currentPpap = getPpapById(state.currentPpapId);
+            dom.modalHelperText.textContent = `Select software PPAPs to link with Hardware PPAP ${currentPpap.id}. PPAPs already linked will not be shown.`;
+            dom.modal.classList.add('visible');
+        };
+        
+        const hideModal = () => {
+            dom.modal.classList.remove('visible');
+            resetSearchModal();
+        };
+
+        const resetSearchModal = () => {
+            dom.searchInputPart.value = '';
+            dom.searchInputSupplier.value = '';
+            dom.linkablePpapsTable.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-gray-500">Please use the search criteria above to find PPAPs.</td></tr>`;
+            dom.selectAllCheckbox.checked = false;
+            resetStatusMultiSelect();
+            resetProgramMultiSelect();
+        };
+
+        dom.linkPpapBtn.addEventListener('click', showModal);
+        dom.closeModalBtn.addEventListener('click', hideModal);
+        dom.cancelLinkBtn.addEventListener('click', hideModal);
+
+        // Search Logic
+        dom.searchPpapBtn.addEventListener('click', () => {
+            const partFilter = dom.searchInputPart.value.toLowerCase();
+            const supplierFilter = dom.searchInputSupplier.value.toLowerCase();
+            const statusFilter = getSelectedStatuses();
+            const programFilter = getSelectedPrograms();
+            const alreadyLinkedIds = getLinkedSoftwareForHardware(state.currentPpapId).map(p => p.id);
+
+            const results = db.ppaps.filter(ppap => 
+                ppap.type === 'Software' &&
+                !alreadyLinkedIds.includes(ppap.id) &&
+                (partFilter === '' || ppap.partNumber.toLowerCase().includes(partFilter) || ppap.name.toLowerCase().includes(partFilter)) &&
+                (supplierFilter === '' || ppap.supplierName.toLowerCase().includes(supplierFilter)) &&
+                (statusFilter.length === 0 || statusFilter.includes(ppap.status)) &&
+                (programFilter.length === 0 || programFilter.includes(ppap.programName))
+            );
+            renderLinkablePpaps(results);
+        });
+
+        function renderLinkablePpaps(ppaps) {
+            dom.linkablePpapsTable.innerHTML = '';
+            dom.selectAllCheckbox.checked = false;
+            if (ppaps.length === 0) {
+                dom.linkablePpapsTable.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-gray-500">No matching PPAPs found.</td></tr>`;
+                return;
+            }
+            ppaps.forEach(ppap => {
+                const row = document.createElement('tr');
+                row.dataset.id = ppap.id;
+                row.innerHTML = `
+                    <td class="p-3 text-center"><input type="checkbox" class="ppap-checkbox"></td>
+                    <td class="p-3">${ppap.id}</td>
+                    <td class="p-3">${ppap.partNumber}</td>
+                    <td class="p-3">${ppap.name}</td>
+                    <td class="p-3">${ppap.supplierName}</td>
+                    <td class="p-3">${ppap.status}</td>
+                    <td class="p-3">${ppap.programName}</td>
+                `;
+                dom.linkablePpapsTable.appendChild(row);
+            });
+        }
+
+        // Linking Confirmation
+        dom.confirmLinkBtn.addEventListener('click', () => {
+            const selectedRows = Array.from(dom.linkablePpapsTable.querySelectorAll('tr')).filter(row => row.querySelector('.ppap-checkbox')?.checked);
             
-            function handleStatusChange(e) {
-                const ppapId = e.target.dataset.id;
-                const newStatus = e.target.value;
-                const ppap = linkedPpaps.find(p => p.id === ppapId);
-                if (ppap) {
-                    ppap.status = newStatus;
-                }
-                updateTabColor();
-            }
-
-            function handleUnlink(e) {
-                const ppapId = e.currentTarget.dataset.id;
-                if (confirm(`Are you sure you want to unlink PPAP ${ppapId}?`)) {
-                    linkedPpaps = linkedPpaps.filter(p => p.id !== ppapId);
-                    renderLinkedPpaps();
-                    updateLinkedPpapsTabVisibility();
-                    updateTabColor();
-                }
-            }
-
-            function handleViewPpap(e) {
-                const ppapIdToView = e.currentTarget.dataset.id;
-                
-                // We can view any PPAP type from the list
-                const targetPpap = allLinkablePpaps.find(p => p.id === ppapIdToView);
-
-                if (targetPpap) {
-                    displayPpapDetails(targetPpap);
-                }
-            }
-            
-            function displayPpapDetails(ppap) {
-                document.getElementById('ppap-id-display').textContent = ppap.id;
-                document.getElementById('ppap-name-display').textContent = ppap.name;
-                document.getElementById('ppap-part-number-display').textContent = ppap.partNumber;
-                document.getElementById('ppap-status-display').textContent = ppap.status;
-
-                currentPpap = ppap;
-
-                updateHeaderButtons();
-                updateLinkedPpapsTabVisibility(); // Controls visibility and content
-
-                // Update the search helper text in the modal
-                 document.querySelector('#link-ppap-modal p').textContent = `Select PPAPs to link with Hardware PPAP ${ppap.id}.`;
-            }
-
-            function updateHeaderButtons() {
-                if (currentPpap.type === 'Hardware') {
-                    linkPpapBtn.classList.remove('hidden');
-                    viewLinkedHardwareBtn.classList.add('hidden');
-                } else { // Software PPAP
-                    linkPpapBtn.classList.add('hidden');
-                    viewLinkedHardwareBtn.classList.remove('hidden');
-                }
-            }
-            
-            viewLinkedHardwareBtn.addEventListener('click', () => {
-                // In a real app, you'd fetch this. Here, we know the mainPpap is the hardware one.
-                displayPpapDetails(mainPpap);
+            selectedRows.forEach(row => {
+                db.links.push({ hardwareId: state.currentPpapId, softwareId: row.dataset.id });
             });
 
+            if (selectedRows.length > 0) {
+                hideModal();
+                render(state.currentPpapId);
+                dom.linkedPpapsTabBtn.click();
+            }
+        });
+        
+        // Delegated Event Listeners for dynamic content
+        document.body.addEventListener('click', (e) => {
+            const viewBtn = e.target.closest('.view-ppap-btn, .view-ppap-link');
+            const unlinkBtn = e.target.closest('.unlink-btn');
+            if (viewBtn) {
+                e.preventDefault();
+                render(viewBtn.dataset.id);
+            }
+            if (unlinkBtn) {
+                const ppapIdToUnlink = unlinkBtn.dataset.id;
+                if (confirm(`Are you sure you want to unlink PPAP ${ppapIdToUnlink}?`)) {
+                    db.links = db.links.filter(link => !(link.hardwareId === state.currentPpapId && link.softwareId === ppapIdToUnlink));
+                    render(state.currentPpapId);
+                }
+            }
+        });
+        
+        dom.linkablePpapsTable.addEventListener('change', e => {
+             if (e.target.classList.contains('ppap-checkbox')) {
+                const allCheckboxes = dom.linkablePpapsTable.querySelectorAll('.ppap-checkbox');
+                const checkedCount = Array.from(allCheckboxes).filter(cb => cb.checked).length;
+                dom.selectAllCheckbox.checked = allCheckboxes.length > 0 && checkedCount === allCheckboxes.length;
+            }
+        });
 
-            function updateLinkedPpapsTabVisibility() {
-                // Tab is only ever visible for Hardware PPAPs that have links
-                if (currentPpap.type === 'Hardware' && linkedPpaps.length > 0) {
-                    linkedPpapsTabBtn.classList.remove('hidden');
-                    backToMainLink.parentElement.classList.add('hidden'); // Hide back link on main HW view
-                    renderLinkedPpaps();
-                    updateTabColor();
-                } else {
-                    linkedPpapsTabBtn.classList.add('hidden');
-                    // If the active tab was the linked ppaps tab, switch back
-                    if(linkedPpapsTabBtn.classList.contains('active')) {
-                        linkedPpapsTabBtn.classList.remove('active');
-                        document.getElementById('linked-ppaps').classList.remove('active');
-                        document.querySelector('[data-tab="review-element"]').classList.add('active');
-                        document.getElementById('review-element').classList.add('active');
+        dom.selectAllCheckbox.addEventListener('change', (e) => {
+            dom.linkablePpapsTable.querySelectorAll('.ppap-checkbox').forEach(checkbox => {
+                checkbox.checked = e.target.checked;
+            });
+        });
+
+        dom.viewLinkedHardwareBtn.addEventListener('click', () => {
+            const hardwarePpap = getLinkedHardwareForSoftware(state.currentPpapId);
+            if(hardwarePpap) render(hardwarePpap.id);
+        });
+        
+        // --- Multi-select Widget Logic ---
+        function setupMultiSelect(containerId, options) {
+            const container = document.getElementById(containerId);
+            const input = container.querySelector('.multi-select-input');
+            const placeholder = container.querySelector('.multi-select-placeholder');
+            const dropdown = container.querySelector('.multi-select-dropdown');
+            let selectedValues = [];
+
+            const reset = () => {
+                selectedValues = [];
+                dropdown.querySelectorAll('input:checked').forEach(el => el.checked = false);
+                placeholder.textContent = containerId.includes('status') ? 'Select Status...' : 'Select Program...';
+            };
+
+            options.forEach(optionValue => {
+                dropdown.innerHTML += `<label><input type="checkbox" class="mr-2" value="${optionValue}"> ${optionValue}</label>`;
+            });
+
+            input.addEventListener('click', () => dropdown.classList.toggle('hidden'));
+            dropdown.addEventListener('change', (e) => {
+                if(e.target.type === 'checkbox') {
+                    selectedValues = Array.from(dropdown.querySelectorAll('input:checked')).map(el => el.value);
+                    if (selectedValues.length > 2) {
+                        placeholder.textContent = `${selectedValues.length} items selected`;
+                    } else if (selectedValues.length > 0) {
+                        placeholder.textContent = selectedValues.join(', ');
+                    } else {
+                        placeholder.textContent = containerId.includes('status') ? 'Select Status...' : 'Select Program...';
                     }
                 }
-            }
-
-            function updateTabColor() {
-                linkedPpapsTabBtn.classList.remove('status-red', 'status-green', 'status-blue');
-
-                if(linkedPpaps.length === 0) return;
-
-                const statuses = linkedPpaps.map(p => p.status);
-                
-                // Priority 1: Red
-                if (statuses.includes('Rejected')) {
-                    linkedPpapsTabBtn.classList.add('status-red');
-                    return;
-                }
-
-                // Priority 2: Green
-                const activePpaps = linkedPpaps.filter(p => p.status !== 'Cancelled');
-                const allApprovedOrClosed = activePpaps.every(p => p.status === 'Approved' || p.status === 'Closed');
-
-                if (activePpaps.length > 0 && allApprovedOrClosed) {
-                    linkedPpapsTabBtn.classList.add('status-green');
-                    return;
-                }
-                
-                // Priority 3: Blue (default)
-                linkedPpapsTabBtn.classList.add('status-blue');
-            }
-
-            // This function is now deprecated in this workflow but kept for reference
-            /*
-            backToMainLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (currentPpap.id !== mainPpap.id) {
-                    displayPpapDetails(mainPpap);
-                }
             });
-            */
-        });
+            document.addEventListener('click', (e) => {
+                if (!container.contains(e.target)) dropdown.classList.add('hidden');
+            });
+            return { getSelected: () => selectedValues, reset };
+        }
+
+        const softwarePpaps = db.ppaps.filter(p => p.type === 'Software');
+        const { getSelected: getSelectedStatuses, reset: resetStatusMultiSelect } = setupMultiSelect('status-multi-select', [...new Set(softwarePpaps.map(p => p.status))]);
+        const { getSelected: getSelectedPrograms, reset: resetProgramMultiSelect } = setupMultiSelect('program-multi-select', [...new Set(softwarePpaps.map(p => p.programName))]);
+
+        // --- Initial Load ---
+        render(state.currentPpapId);
+    });
     </script>
 </body>
 </html>
-
