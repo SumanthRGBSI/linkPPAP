@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPAP View Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-bg: #1a202c;
+            --main-bg: #f7fafc;
+            --primary-blue: #3b82f6;
+            --border-color: #e2e8f0;
+            --text-secondary: #718096;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #2d3748;
+        }
+
+        .sidebar {
+            background-color: var(--sidebar-bg);
+        }
+
+        .main-content {
+            background-color: var(--main-bg);
+        }
+        
+        .tab-button {
+            padding: 0.75rem 1.25rem;
+            color: var(--text-secondary);
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab-button.active, .tab-button:hover {
+            color: var(--primary-blue);
+            border-bottom-color: var(--primary-blue);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: #4a5568;
+        }
+        .btn-secondary:hover {
+            background-color: #f7fafc;
+        }
+        
+        .header-btn {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .header-btn i {
+            margin-right: 0.5rem;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 0.5rem;
+            width: 90%;
+            max-width: 80rem;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.visible .modal-content {
+            transform: scale(1);
+        }
+
+        #linked-ppaps-tab-button[class*="status-"] {
+            border-radius: 6px 6px 0 0;
+            font-weight: 600;
+        }
+
+        #linked-ppaps-tab-button.status-blue {
+            background-color: #eff6ff; /* blue-50 */
+            color: #3b82f6; /* blue-500 */
+        }
+        #linked-ppaps-tab-button.status-red {
+            background-color: #fef2f2; /* red-50 */
+            color: #ef4444; /* red-500 */
+        }
+        #linked-ppaps-tab-button.status-green {
+            background-color: #f0fdf4; /* green-50 */
+            color: #22c55e; /* green-600 */
+        }
+
+        /* Override hover and active states for colored tab */
+        #linked-ppaps-tab-button[class*="status-"]:hover,
+        #linked-ppaps-tab-button[class*="status-"].active {
+             border-bottom-color: transparent; /* remove blue line */
+        }
+
+        #linked-ppaps-tab-button.status-blue:hover { background-color: #dbeafe; /* blue-100 */}
+        #linked-ppaps-tab-button.status-red:hover { background-color: #fee2e2; /* red-100 */}
+        #linked-ppaps-tab-button.status-green:hover { background-color: #dcfce7; /* green-100 */}
+
+
+    </style>
+</head>
+<body class="bg-gray-200">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar text-white w-16 flex flex-col items-center py-4 space-y-4">
+             <div class="text-2xl font-bold">A</div>
+             <div class="flex flex-col items-center justify-between flex-grow w-full">
+                <div class="space-y-4">
+                    <button class="w-12 h-12 flex items-center justify-center bg-gray-700 rounded-lg"><i class="fas fa-home"></i></button>
+                    <button class="w-12 h-12 flex items-center justify-center hover:bg-gray-700 rounded-lg"><i class="fas fa-chart-bar"></i></button>
+                    <button class="w-12 h-12 flex items-center justify-center hover:bg-gray-700 rounded-lg"><i class="fas fa-folder"></i></button>
+                    <button class="w-12 h-12 flex items-center justify-center hover:bg-gray-700 rounded-lg"><i class="fas fa-tasks"></i></button>
+                    <button class="w-12 h-12 flex items-center justify-center hover:bg-gray-700 rounded-lg"><i class="fas fa-cog"></i></button>
+                </div>
+                <div class="space-y-4">
+                    <button class="w-12 h-12 flex items-center justify-center hover:bg-gray-700 rounded-lg"><i class="fas fa-question-circle"></i></button>
+                    <button class="w-12 h-12 flex items-center justify-center hover:bg-gray-700 rounded-lg"><i class="fas fa-user-circle"></i></button>
+                </div>
+             </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Header -->
+            <header class="bg-white shadow-sm flex items-center justify-between p-4">
+                <div class="flex items-center">
+                    <button class="text-gray-600 mr-4"><i class="fas fa-arrow-left"></i></button>
+                    <h1 class="text-xl font-semibold text-gray-800">Workflow Detail</h1>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <span class="text-sm font-medium text-blue-500"><i class="fas fa-check-circle text-blue-500"></i> Phased PPAP Status</span>
+                    <span class="text-sm font-medium text-gray-600"><i class="fas fa-history text-gray-400"></i> Status History</span>
+                    <div class="flex items-center space-x-4">
+                        <button class="header-btn"><i class="fas fa-download"></i>Download</button>
+                        <!-- New Link PPAP button -->
+                        <button id="link-ppap-btn" class="header-btn"><i class="fas fa-link"></i>Link PPAP</button>
+                        <button class="header-btn"><i class="fas fa-file-export"></i>Export</button>
+                    </div>
+                     <div class="flex items-center">
+                        <i class="fas fa-user-circle text-2xl text-gray-400 mr-2"></i>
+                        <div>
+                            <span class="font-semibold">Admin User(admin)</span>
+                        </div>
+                     </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="flex-1 p-6 overflow-y-auto main-content">
+                <div class="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4 mb-6 rounded-md" role="alert">
+                  <p class="font-bold">Package Interim Approved @ 01 Sep 2025</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <!-- Details Section -->
+                    <div class="flex justify-between items-center mb-4">
+                         <h2 class="text-lg font-semibold">Details</h2>
+                         <button class="text-sm text-blue-600 font-semibold"><i class="fas fa-plus"></i> More Details</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm mb-6">
+                        <div><strong class="font-semibold text-gray-500 block">PPAP Id:</strong><span>PPAP-SPLR-2025-34751</span></div>
+                        <div><strong class="font-semibold text-gray-500 block">Name:</strong><span>Wiper Blade Assembly, 28in</span></div>
+                        <div><strong class="font-semibold text-gray-500 block">Part Number:</strong><span>6500299</span></div>
+                        <div><strong class="font-semibold text-gray-500 block">Order Number:</strong><span></span></div>
+                        <div><strong class="font-semibold text-gray-500 block">PPAP Status:</strong><span>Interim Approved</span></div>
+                        <div><strong class="font-semibold text-gray-500 block">UIO:</strong><span></span></div>
+                    </div>
+
+                    <!-- Tabs Navigation -->
+                    <div class="border-b border-gray-200">
+                        <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                            <button class="tab-button" data-tab="elements">Elements</button>
+                            <button class="tab-button" data-tab="conversation">Conversation</button>
+                            <button class="tab-button" data-tab="e-psw">e-PSW</button>
+                            <button class="tab-button" data-tab="upload-document">Upload Document</button>
+                            <button class="tab-button active" data-tab="review-element">Review Element</button>
+                            <!-- New Linked PPAPs Tab -->
+                            <button id="linked-ppaps-tab-button" class="tab-button hidden" data-tab="linked-ppaps">Linked PPAPs</button>
+                        </nav>
+                    </div>
+                    
+                    <!-- Tab Content -->
+                    <div id="elements" class="tab-content mt-6">Content for Elements</div>
+                    <div id="conversation" class="tab-content mt-6">Content for Conversation</div>
+                    <div id="e-psw" class="tab-content mt-6">Content for e-PSW</div>
+                    <div id="upload-document" class="tab-content mt-6">Content for Upload Document</div>
+                    
+                    <div id="review-element" class="tab-content active mt-6">
+                        <!-- Content from screenshot -->
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-4 text-sm">
+                                <span class="font-semibold"><i class="fas fa-list-alt"></i> Element Level Description</span>
+                                <span><i class="fas fa-star text-yellow-500"></i> Reviewer's Element</span>
+                                <span><i class="fas fa-download text-gray-500"></i> Download Reference Document(s)</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full bg-white text-sm">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="p-3 text-left font-semibold text-gray-600">#</th>
+                                            <th class="p-3 text-left font-semibold text-gray-600">Name</th>
+                                            <th class="p-3 text-left font-semibold text-gray-600">Abbreviation</th>
+                                            <th class="p-3 text-left font-semibold text-gray-600">REQ</th>
+                                            <th class="p-3 text-left font-semibold text-gray-600" colspan="3"></th>
+                                            <th class="p-3 text-left font-semibold text-gray-600">Status</th>
+                                            <th class="p-3 text-left font-semibold text-gray-600" colspan="2">Submission Responsible</th>
+                                            <th class="p-3 text-left font-semibold text-gray-600" colspan="2">Reviewer's</th>
+                                            <th class="p-3 text-left font-semibold text-gray-600">Actual Approval Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        <tr class="font-bold bg-gray-100"><td colspan="13" class="p-3">Phase 1: Product PPAP <span class="text-orange-500">Interim Approved</span></td></tr>
+                                        <tr>
+                                            <td class="p-3">1</td>
+                                            <td class="p-3">Design Record</td>
+                                            <td class="p-3">DR</td>
+                                            <td class="p-3"><i class="fas fa-check text-green-500"></i></td>
+                                            <td class="p-3"><i class="fas fa-comment-dots text-blue-500"></i></td>
+                                            <td class="p-3"><i class="fas fa-paperclip"></i></td>
+                                            <td class="p-3"><i class="fas fa-list"></i></td>
+                                            <td class="p-3"><span class="bg-green-100 text-green-700 font-medium py-1 px-3 rounded-full">Approved</span></td>
+                                            <td class="p-3 text-gray-500">Due</td>
+                                            <td class="p-3">25 Oct 2025</td>
+                                            <td class="p-3 text-gray-500">Actual</td>
+                                            <td class="p-3">29 Aug 2025</td>
+                                            <td class="p-3">29 Aug 2025</td>
+                                        </tr>
+                                        <!-- More rows as in the screenshot -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="linked-ppaps" class="tab-content mt-6">
+                        <div class="flex justify-end mb-4">
+                            <button class="btn btn-secondary text-sm"><i class="fas fa-file-excel mr-2"></i>Export to Excel</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white text-sm">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="p-3 text-left font-semibold text-gray-600">Linked PPAP ID</th>
+                                        <th class="p-3 text-left font-semibold text-gray-600">Part Number</th>
+                                        <th class="p-3 text-left font-semibold text-gray-600">Part Name</th>
+                                        <th class="p-3 text-left font-semibold text-gray-600">Status</th>
+                                        <th class="p-3 text-left font-semibold text-gray-600">Supplier Name</th>
+                                        <th class="p-3 text-left font-semibold text-gray-600">Program Name</th>
+                                        <th class="p-3 text-left font-semibold text-gray-600">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="linked-ppaps-table-body" class="divide-y divide-gray-200">
+                                    <!-- Linked PPAPs will be dynamically inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Link PPAP Modal -->
+    <div id="link-ppap-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h3 class="text-lg font-semibold">Link PPAPs</h3>
+                <button id="close-modal-btn" class="text-gray-500 hover:text-gray-800">&times;</button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-grow">
+                <p class="text-sm text-gray-600 mb-4">Select PPAPs to link with PPAP-SPLR-2025-34751. PPAPs already part of another link group will not be shown.</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white text-sm">
+                        <thead class="bg-gray-50">
+                           <tr>
+                                <th class="p-2"><input type="checkbox" id="select-all-ppaps"></th>
+                                <th class="p-2 font-semibold text-gray-600 text-left">PPAP ID</th>
+                                <th class="p-2 font-semibold text-gray-600 text-left">Part Number</th>
+                                <th class="p-2 font-semibold text-gray-600 text-left">Part Name</th>
+                                <th class="p-2 font-semibold text-gray-600 text-left">Supplier Name</th>
+                                <th class="p-2 font-semibold text-gray-600 text-left">Status</th>
+                                <th class="p-2 font-semibold text-gray-600 text-left">Program Name</th>
+                            </tr>
+                            <tr>
+                                <th class="p-2"></th>
+                                <th class="p-1"><input type="text" placeholder="Filter..." class="w-full border rounded px-2 py-1 text-xs"></th>
+                                <th class="p-1"><input type="text" placeholder="Filter..." class="w-full border rounded px-2 py-1 text-xs"></th>
+                                <th class="p-1"><input type="text" placeholder="Filter..." class="w-full border rounded px-2 py-1 text-xs"></th>
+                                <th class="p-1"><input type="text" placeholder="Filter..." class="w-full border rounded px-2 py-1 text-xs"></th>
+                                <th class="p-1"><input type="text" placeholder="Filter..." class="w-full border rounded px-2 py-1 text-xs"></th>
+                                <th class="p-1"><input type="text" placeholder="Filter..." class="w-full border rounded px-2 py-1 text-xs"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="linkable-ppaps-table" class="divide-y divide-gray-200">
+                            <!-- Sample Data -->
+                            <tr data-id="PPAP-EXT-2025-1050"><td><input type="checkbox" class="ppap-checkbox"></td><td class="p-2">PPAP-EXT-2025-1050</td><td class="p-2">7500123</td><td class="p-2">Brake Caliper</td><td class="p-2">AutoParts Inc.</td><td class="p-2" data-status="Requested">Requested</td><td class="p-2">Mustang 2025</td></tr>
+                            <tr data-id="PPAP-EXT-2025-1051"><td><input type="checkbox" class="ppap-checkbox"></td><td class="p-2">PPAP-EXT-2025-1051</td><td class="p-2">7500124</td><td class="p-2">Brake Pad Set</td><td class="p-2">AutoParts Inc.</td><td class="p-2" data-status="In-Progress">In-Progress</td><td class="p-2">Mustang 2025</td></tr>
+                            <tr data-id="PPAP-INT-2025-4522"><td><input type="checkbox" class="ppap-checkbox"></td><td class="p-2">PPAP-INT-2025-4522</td><td class="p-2">8800451</td><td class="p-2">Headlight Assembly</td><td class="p-2">Lightworks Corp</td><td class="p-2" data-status="Approval Pending">Approval Pending</td><td class="p-2">Explorer EV</td></tr>
+                            <tr data-id="PPAP-INT-2025-4523"><td><input type="checkbox" class="ppap-checkbox"></td><td class="p-2">PPAP-INT-2025-4523</td><td class="p-2">9100789</td><td class="p-2">Radiator Fan</td><td class="p-2">Cooling Systems LLC</td><td class="p-2" data-status="Approved">Approved</td><td class="p-2">F-150 Lightning</td></tr>
+                            <tr data-id="PPAP-SPLR-2024-9876"><td><input type="checkbox" class="ppap-checkbox"></td><td class="p-2">PPAP-SPLR-2024-9876</td><td class="p-2">5400321</td><td class="p-2">Fuel Injector</td><td class="p-2">Engine Dynamics</td><td class="p-2" data-status="Rejected">Rejected</td><td class="p-2">Bronco Raptor</td></tr>
+                             <tr data-id="PPAP-SPLR-2024-9877"><td><input type="checkbox" class="ppap-checkbox"></td><td class="p-2">PPAP-SPLR-2024-9877</td><td class="p-2">5400322</td><td class="p-2">Ignition Coil</td><td class="p-2">Engine Dynamics</td><td class="p-2" data-status="Closed">Closed</td><td class="p-2">Bronco Raptor</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="flex justify-end p-4 border-t bg-gray-50">
+                <button id="cancel-link-btn" class="btn btn-secondary mr-2">Cancel</button>
+                <button id="confirm-link-btn" class="btn btn-primary">Link Selected</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const linkPpapBtn = document.getElementById('link-ppap-btn');
+            const modal = document.getElementById('link-ppap-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const cancelLinkBtn = document.getElementById('cancel-link-btn');
+            const confirmLinkBtn = document.getElementById('confirm-link-btn');
+            const selectAllCheckbox = document.getElementById('select-all-ppaps');
+            const ppapCheckboxes = document.querySelectorAll('.ppap-checkbox');
+            const linkedPpapsTabBtn = document.getElementById('linked-ppaps-tab-button');
+            const linkedPpapsTableBody = document.getElementById('linked-ppaps-table-body');
+            const linkablePpapsTable = document.getElementById('linkable-ppaps-table');
+
+            let linkedPpaps = [];
+
+            // Tab navigation
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    document.getElementById(tab.dataset.tab).classList.add('active');
+                });
+            });
+            
+            function showModal() {
+                modal.classList.add('visible');
+            }
+
+            function hideModal() {
+                modal.classList.remove('visible');
+            }
+
+            linkPpapBtn.addEventListener('click', showModal);
+            closeModalBtn.addEventListener('click', hideModal);
+            cancelLinkBtn.addEventListener('click', hideModal);
+            window.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    hideModal();
+                }
+            });
+
+            // Select all checkbox logic
+            selectAllCheckbox.addEventListener('change', (e) => {
+                ppapCheckboxes.forEach(checkbox => {
+                    checkbox.checked = e.target.checked;
+                });
+            });
+
+            // Confirm linking logic
+            confirmLinkBtn.addEventListener('click', () => {
+                const selectedRows = Array.from(linkablePpapsTable.rows).filter(row => row.querySelector('.ppap-checkbox').checked);
+                
+                selectedRows.forEach(row => {
+                    const id = row.dataset.id;
+                    if (!linkedPpaps.find(p => p.id === id)) {
+                        const ppapData = {
+                            id: id,
+                            partNumber: row.cells[2].textContent,
+                            partName: row.cells[3].textContent,
+                            status: row.cells[5].dataset.status,
+                            supplierName: row.cells[4].textContent,
+                            programName: row.cells[6].textContent,
+                        };
+                        linkedPpaps.push(ppapData);
+                    }
+                });
+
+                if (linkedPpaps.length > 0) {
+                    renderLinkedPpaps();
+                    updateLinkedPpapsTabVisibility();
+                    updateTabColor();
+                    hideModal();
+                    
+                    // Switch to the linked PPAPs tab
+                    document.querySelector('.tab-button.active').classList.remove('active');
+                    document.querySelector('.tab-content.active').classList.remove('active');
+                    linkedPpapsTabBtn.classList.add('active');
+                    document.getElementById('linked-ppaps').classList.add('active');
+                }
+            });
+
+            function renderLinkedPpaps() {
+                linkedPpapsTableBody.innerHTML = '';
+                linkedPpaps.forEach((ppap, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="p-3">${ppap.id}</td>
+                        <td class="p-3">${ppap.partNumber}</td>
+                        <td class="p-3">${ppap.partName}</td>
+                        <td class="p-3">
+                            <select class="status-selector border rounded px-2 py-1 text-xs" data-id="${ppap.id}">
+                                <option value="Requested" ${ppap.status === 'Requested' ? 'selected' : ''}>Requested</option>
+                                <option value="In-Progress" ${ppap.status === 'In-Progress' ? 'selected' : ''}>In-Progress</option>
+                                <option value="Review Pending" ${ppap.status === 'Review Pending' ? 'selected' : ''}>Review Pending</option>
+                                <option value="Approval Pending" ${ppap.status === 'Approval Pending' ? 'selected' : ''}>Approval Pending</option>
+                                <option value="Interim Approved" ${ppap.status === 'Interim Approved' ? 'selected' : ''}>Interim Approved</option>
+                                <option value="Cancelled" ${ppap.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                                <option value="Approved" ${ppap.status === 'Approved' ? 'selected' : ''}>Approved</option>
+                                <option value="Closed" ${ppap.status === 'Closed' ? 'selected' : ''}>Closed</option>
+                                <option value="Rejected" ${ppap.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                            </select>
+                        </td>
+                        <td class="p-3">${ppap.supplierName}</td>
+                        <td class="p-3">${ppap.programName}</td>
+                        <td class="p-3">
+                            <button class="text-blue-600 hover:underline text-xs font-semibold mr-4">View</button>
+                            <button class="unlink-btn text-red-600 hover:underline text-xs font-semibold" data-id="${ppap.id}"><i class="fas fa-unlink"></i> Unlink</button>
+                        </td>
+                    `;
+                    linkedPpapsTableBody.appendChild(row);
+                });
+                
+                // Add event listeners for new elements
+                document.querySelectorAll('.status-selector').forEach(selector => {
+                    selector.addEventListener('change', handleStatusChange);
+                });
+                document.querySelectorAll('.unlink-btn').forEach(button => {
+                    button.addEventListener('click', handleUnlink);
+                });
+            }
+            
+            function handleStatusChange(e) {
+                const ppapId = e.target.dataset.id;
+                const newStatus = e.target.value;
+                const ppap = linkedPpaps.find(p => p.id === ppapId);
+                if (ppap) {
+                    ppap.status = newStatus;
+                }
+                updateTabColor();
+            }
+
+            function handleUnlink(e) {
+                const ppapId = e.currentTarget.dataset.id;
+                if (confirm(`Are you sure you want to unlink PPAP ${ppapId}?`)) {
+                    linkedPpaps = linkedPpaps.filter(p => p.id !== ppapId);
+                    renderLinkedPpaps();
+                    updateLinkedPpapsTabVisibility();
+                    updateTabColor();
+                }
+            }
+
+            function updateLinkedPpapsTabVisibility() {
+                if (linkedPpaps.length > 0) {
+                    linkedPpapsTabBtn.classList.remove('hidden');
+                } else {
+                    linkedPpapsTabBtn.classList.add('hidden');
+                    // If the active tab was the linked ppaps tab, switch back to review element
+                    if(linkedPpapsTabBtn.classList.contains('active')) {
+                        linkedPpapsTabBtn.classList.remove('active');
+                        document.getElementById('linked-ppaps').classList.remove('active');
+                        document.querySelector('[data-tab="review-element"]').classList.add('active');
+                        document.getElementById('review-element').classList.add('active');
+                    }
+                }
+            }
+
+            function updateTabColor() {
+                linkedPpapsTabBtn.classList.remove('status-red', 'status-green', 'status-blue');
+
+                if(linkedPpaps.length === 0) return;
+
+                const statuses = linkedPpaps.map(p => p.status);
+                
+                // Priority 1: Red
+                if (statuses.includes('Rejected')) {
+                    linkedPpapsTabBtn.classList.add('status-red');
+                    return;
+                }
+
+                // Priority 2: Green
+                const activePpaps = linkedPpaps.filter(p => p.status !== 'Cancelled');
+                const allApprovedOrClosed = activePpaps.every(p => p.status === 'Approved' || p.status === 'Closed');
+
+                if (activePpaps.length > 0 && allApprovedOrClosed) {
+                    linkedPpapsTabBtn.classList.add('status-green');
+                    return;
+                }
+                
+                // Priority 3: Blue (default)
+                linkedPpapsTabBtn.classList.add('status-blue');
+            }
+
+        });
+    </script>
+</body>
+</html>
+
